@@ -13,6 +13,7 @@ lsl_out = False
 save_dir = 'data/misc/'  # Directory to save data
 run = 1  # Run number for tracking
 save_file_aux = save_dir + f'aux_run-{run}.npy'
+save_file_eeg = save_dir + f'eeg_run-{run}.csv'
 
 # Initialize BrainFlow with OpenBCI Connection
 CYTON_BOARD_ID = 0
@@ -47,7 +48,7 @@ def find_openbci_port():
 
 print(BoardShim.get_board_descr(CYTON_BOARD_ID))
 params = BrainFlowInputParams()
-params.serial_port = find_openbci_port()
+params.serial_port = 'COM7'
 board = BoardShim(CYTON_BOARD_ID, params)
 board.prepare_session()
 board.config_board(ANALOGUE_MODE)
@@ -56,6 +57,7 @@ board.start_stream(45000)
 # Data Storage
 timestamps = []
 labels = []
+eeg_data = []
 queue_in = Queue()
 stop_event = Event()
 
@@ -67,6 +69,8 @@ def get_data(queue_in):
         aux_in = data_in[board.get_analog_channels(CYTON_BOARD_ID)]
         if len(timestamp_in) > 0:
             queue_in.put((eeg_in, aux_in, timestamp_in))
+            for i in range(len(timestamp_in)):
+                eeg_data.append([timestamp_in[i]] + list(eeg_in[:, i]))
         time.sleep(0.1)
 
 def on_press(key):
@@ -112,6 +116,11 @@ def main():
             df = pd.DataFrame({"Timestamp": timestamps, "Label": labels})
             df.to_csv("attention_tracking.csv", index=False)
             print("Data saved to attention_tracking.csv")
+            
+            # Save EEG data to CSV
+            eeg_df = pd.DataFrame(eeg_data, columns=["Timestamp"] + [f"EEG_{i+1}" for i in range(len(eeg_data[0])-1)])
+            eeg_df.to_csv(save_file_eeg, index=False)
+            print(f"EEG data saved to {save_file_eeg}")
             
             # Save EEG auxiliary data
             os.makedirs(save_dir, exist_ok=True)
