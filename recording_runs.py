@@ -52,7 +52,7 @@ def find_openbci_port():
 
 print(BoardShim.get_board_descr(CYTON_BOARD_ID))
 params = BrainFlowInputParams()
-params.serial_port = 'COM7'
+params.serial_port = 'COM6'
 board = BoardShim(CYTON_BOARD_ID, params)
 board.prepare_session()
 board.config_board(ANALOGUE_MODE)
