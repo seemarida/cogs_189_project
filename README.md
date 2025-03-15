@@ -1,1 +1,2 @@
-Python recording script using Brainflow
+# EEG-Based Study Session Attention Analysis
+This project explores EEG-based attention tracking during study sessions.
